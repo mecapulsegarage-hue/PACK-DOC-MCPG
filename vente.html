@@ -1,0 +1,397 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vente Véhicule — MecaPulse Garage</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--noir:#0a0a0a;--gris:#141414;--gris2:#1c1c1c;--gris3:#252525;--accent:#e8b400;--accent2:#f5c800;--texte:#f0ece4;--texte2:#a89f8c;--texte3:#555;--bordure:#2a2a2a;--rouge:#e53935;--vert:#4caf50;--fb:#1877f2;--ig:#bc1888;}
+*{box-sizing:border-box;margin:0;padding:0;}html,body{max-width:100%;overflow-x:hidden;}
+body{background:var(--noir);color:var(--texte);font-family:'Barlow',sans-serif;min-height:100vh;}
+.header{background:var(--gris);border-bottom:2px solid var(--accent);padding:13px 28px;display:flex;align-items:center;justify-content:space-between;}
+.logo{font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:800;letter-spacing:3px;}
+.logo span{color:var(--accent);}
+.header-sub{font-size:.62rem;color:var(--texte2);text-transform:uppercase;letter-spacing:2px;margin-top:2px;}
+.container{max-width:860px;margin:0 auto;padding:24px 16px;}
+.sec{background:var(--gris);border:1px solid var(--bordure);margin-bottom:14px;}
+.sec-head{padding:11px 16px;border-bottom:1px solid var(--bordure);display:flex;align-items:center;gap:10px;}
+.sec-title{font-family:'Barlow Condensed',sans-serif;font-size:.75rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);}
+.sec-body{padding:16px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;}
+.mt{margin-top:10px;}
+.field{display:flex;flex-direction:column;gap:4px;}
+.field label{font-size:.58rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--texte2);font-weight:600;}
+.field input,.field select,.field textarea{background:var(--gris2);border:1px solid var(--bordure);border-bottom:2px solid var(--bordure);color:var(--texte);padding:8px 10px;font-family:'Barlow',sans-serif;font-size:.84rem;outline:none;width:100%;transition:border-color .2s;-webkit-appearance:none;}
+.field input:focus,.field select:focus,.field textarea:focus{border-bottom-color:var(--accent);}
+.field select{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23a89f8c' d='M5 6L0 0h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+.field select option{background:var(--gris);}
+.field textarea{resize:vertical;min-height:100px;line-height:1.6;}
+.prix-wrap{position:relative;}
+.prix-sym{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--accent);font-weight:700;pointer-events:none;}
+.prix-wrap input{padding-left:24px;font-size:1rem;font-weight:600;}
+.photo-zone{border:2px dashed var(--bordure);padding:22px;text-align:center;cursor:pointer;transition:border-color .2s;background:var(--gris2);}
+.photo-zone:hover,.photo-zone.drag{border-color:var(--accent);}
+.photo-zone input[type=file]{display:none;}
+.pz-icon{font-size:1.8rem;margin-bottom:6px;opacity:.5;}
+.pz-txt{font-size:.76rem;color:var(--texte2);}
+.pz-txt strong{color:var(--accent);}
+.photos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:12px;}
+.photo-thumb{position:relative;aspect-ratio:4/3;background:var(--gris3);border:1px solid var(--bordure);overflow:hidden;}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;}
+.badge-principale{position:absolute;top:3px;left:3px;background:var(--accent);color:#000;font-size:.5rem;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;padding:2px 4px;text-transform:uppercase;}
+.del-ph{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.75);border:none;color:#fff;width:18px;height:18px;cursor:pointer;font-size:.65rem;}
+.del-ph:hover{background:var(--rouge);}
+.btn-gen{background:var(--gris3);border:1px solid var(--bordure);color:var(--texte2);padding:6px 14px;font-family:'Barlow Condensed',sans-serif;font-size:.7rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .15s;margin-right:6px;margin-bottom:8px;}
+.btn-gen:hover{border-color:var(--accent);color:var(--accent);}
+.hashtags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.htag{background:var(--gris3);border:1px solid var(--bordure);color:var(--texte2);padding:3px 9px;font-size:.66rem;cursor:pointer;transition:all .15s;font-family:'Barlow Condensed',sans-serif;}
+.htag.on{background:#1a0818;border-color:var(--ig);color:var(--ig);}
+.reseau-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.rcard{border:2px solid var(--bordure);padding:12px 14px;cursor:pointer;transition:all .15s;background:var(--gris2);display:flex;align-items:center;gap:11px;user-select:none;}
+.rcard.on-fb{border-color:var(--fb);background:#0a1628;}
+.rcard.on-ig{border-color:var(--ig);background:#1a0818;}
+.rcard-ico{font-size:1.3rem;width:32px;text-align:center;}
+.rcard-info{flex:1;}
+.rcard-nom{font-family:'Barlow Condensed',sans-serif;font-size:.88rem;font-weight:700;letter-spacing:1px;}
+.rcard-sub{font-size:.6rem;color:var(--texte3);margin-top:1px;}
+.rcard-chk{width:15px;height:15px;border:2px solid var(--bordure);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:.6rem;flex-shrink:0;}
+.rcard.on-fb .rcard-chk{border-color:var(--fb);background:var(--fb);color:#fff;}
+.rcard.on-ig .rcard-chk{border-color:var(--ig);background:var(--ig);color:#fff;}
+.prev-box{background:#fff;color:#1c1e21;border-radius:6px;padding:12px;}
+.prev-hd{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.prev-av{width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.7rem;color:#000;flex-shrink:0;}
+.prev-page{font-weight:700;font-size:.78rem;}
+.prev-sub{font-size:.62rem;color:#65676b;}
+.prev-img{width:100%;aspect-ratio:4/3;background:#f0f2f5;border-radius:3px;margin:8px 0;display:flex;align-items:center;justify-content:center;color:#65676b;font-size:.75rem;overflow:hidden;}
+.prev-img img{width:100%;height:100%;object-fit:cover;}
+.prev-txt{font-size:.76rem;white-space:pre-wrap;line-height:1.5;}
+.status-bar{margin-top:12px;display:flex;flex-direction:column;gap:6px;}
+.sitem{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid var(--bordure);font-size:.76rem;}
+.sitem.pending{color:var(--texte3);}
+.sitem.sending{border-color:var(--accent);color:var(--accent);animation:pulse .8s infinite alternate;}
+.sitem.ok{border-color:var(--vert);color:var(--vert);}
+.sitem.err{border-color:var(--rouge);color:var(--rouge);}
+@keyframes pulse{from{opacity:.6}to{opacity:1}}
+.btns-pub{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+.btn-both{background:var(--accent);color:#000;border:none;padding:13px 20px;font-family:'Barlow Condensed',sans-serif;font-size:.92rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;flex:1;transition:background .2s;}
+.btn-both:hover{background:var(--accent2);}
+.btn-fb{background:var(--fb);color:#fff;border:none;padding:11px 16px;font-family:'Barlow Condensed',sans-serif;font-size:.78rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:opacity .2s;}
+.btn-fb:hover{opacity:.85;}
+.btn-ig{background:var(--ig);color:#fff;border:none;padding:11px 16px;font-family:'Barlow Condensed',sans-serif;font-size:.78rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:opacity .2s;}
+.btn-ig:hover{opacity:.85;}
+#toast{position:fixed;bottom:20px;right:20px;background:var(--gris2);color:var(--texte);padding:10px 16px;font-family:'Barlow Condensed',sans-serif;font-size:.82rem;letter-spacing:1px;display:none;z-index:9999;border-left:3px solid var(--accent);box-shadow:0 4px 18px rgba(0,0,0,.6);}
+#toast.err{border-left-color:var(--rouge);}
+#toast.ok{border-left-color:var(--vert);}
+@media(max-width:600px){.g2,.g3,.g4,.reseau-grid{grid-template-columns:1fr;}.btns-pub{flex-direction:column;}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="logo">MECAPULSE <span>GARAGE</span></div>
+    <div class="header-sub">Publication annonce véhicule</div>
+  </div>
+  <div style="font-family:'Barlow Condensed',sans-serif;font-size:.8rem;letter-spacing:2px;color:var(--texte2);">📢 VENTE AUTO</div>
+</div>
+
+<div class="container">
+
+  <!-- VÉHICULE -->
+  <div class="sec">
+    <div class="sec-head"><span>🚗</span><span class="sec-title">Informations véhicule</span></div>
+    <div class="sec-body">
+      <div class="g4">
+        <div class="field"><label>Marque</label><input id="marque" placeholder="Peugeot" oninput="updatePreview()"></div>
+        <div class="field"><label>Modèle</label><input id="modele" placeholder="308" oninput="updatePreview()"></div>
+        <div class="field"><label>Année</label><input id="annee" placeholder="2019" oninput="updatePreview()"></div>
+        <div class="field"><label>Kilométrage</label><input id="km" placeholder="85 000 km" oninput="updatePreview()"></div>
+      </div>
+      <div class="g4 mt">
+        <div class="field"><label>Carburant</label>
+          <select id="carburant" onchange="updatePreview()">
+            <option value="">—</option><option>Essence</option><option>Diesel</option>
+            <option>Électrique</option><option>Hybride</option><option>GPL</option>
+          </select>
+        </div>
+        <div class="field"><label>Boîte</label>
+          <select id="boite" onchange="updatePreview()">
+            <option value="">—</option><option>Manuelle</option><option>Automatique</option><option>Semi-auto</option>
+          </select>
+        </div>
+        <div class="field"><label>Couleur</label><input id="couleur" placeholder="Gris métallisé" oninput="updatePreview()"></div>
+        <div class="field"><label>Portes</label>
+          <select id="portes" onchange="updatePreview()">
+            <option value="">—</option><option>2 portes</option><option>3 portes</option><option>4 portes</option><option>5 portes</option>
+          </select>
+        </div>
+      </div>
+      <div class="g3 mt">
+        <div class="field"><label>État général</label>
+          <select id="etat" onchange="updatePreview()">
+            <option value="">—</option><option>Excellent état</option><option>Très bon état</option><option>Bon état</option><option>État correct</option>
+          </select>
+        </div>
+        <div class="field"><label>Contrôle technique</label>
+          <select id="ct" onchange="updatePreview()">
+            <option value="">—</option><option>Valide</option><option>À refaire</option><option>Non présenté</option>
+          </select>
+        </div>
+        <div class="field"><label>Options / Équipements</label><input id="options" placeholder="Clim, GPS, Bluetooth..." oninput="updatePreview()"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRIX -->
+  <div class="sec">
+    <div class="sec-head"><span>💶</span><span class="sec-title">Prix & Contact</span></div>
+    <div class="sec-body">
+      <div class="g3">
+        <div class="field"><label>Prix de vente</label>
+          <div class="prix-wrap"><span class="prix-sym">€</span><input type="number" id="prix" placeholder="8500" min="0" oninput="updatePreview()"></div>
+        </div>
+        <div class="field"><label>Négociable</label>
+          <select id="nego" onchange="updatePreview()">
+            <option value="">—</option><option>Oui</option><option>Non</option><option>À discuter</option>
+          </select>
+        </div>
+        <div class="field"><label>Téléphone contact</label><input type="tel" id="contact" placeholder="06 00 00 00 00" oninput="updatePreview()"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHOTOS -->
+  <div class="sec">
+    <div class="sec-head"><span>📸</span><span class="sec-title">Photos du véhicule</span></div>
+    <div class="sec-body">
+      <div class="photo-zone" id="dz" onclick="document.getElementById('fi').click()"
+        ondragover="event.preventDefault();this.classList.add('drag')"
+        ondragleave="this.classList.remove('drag')"
+        ondrop="handleDrop(event)">
+        <div class="pz-icon">📷</div>
+        <div class="pz-txt"><strong>Cliquez ou glissez vos photos ici</strong><br>JPG/PNG — max 10 photos — La 1ère = photo principale</div>
+        <input type="file" id="fi" multiple accept="image/*" onchange="handleFiles(this.files)">
+      </div>
+      <div class="photos-grid" id="photos-grid"></div>
+      <div style="font-size:.68rem;color:var(--texte3);margin-top:6px;" id="ph-count"></div>
+    </div>
+  </div>
+
+  <!-- DESCRIPTION -->
+  <div class="sec">
+    <div class="sec-head"><span>✏️</span><span class="sec-title">Description de l'annonce</span></div>
+    <div class="sec-body">
+      <button class="btn-gen" onclick="genDesc()">⚡ Générer automatiquement</button>
+      <button class="btn-gen" onclick="document.getElementById('desc').value='';updatePreview()">✕ Effacer</button>
+      <div class="field"><textarea id="desc" placeholder="Décrivez le véhicule..." oninput="updatePreview()" rows="6"></textarea></div>
+      <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--texte2);margin-top:12px;margin-bottom:6px;font-weight:600;">Hashtags Instagram</div>
+      <div class="hashtags" id="htags">
+        <div class="htag on" data-t="#voiture">#voiture</div>
+        <div class="htag on" data-t="#autooccasion">#autooccasion</div>
+        <div class="htag on" data-t="#voitureoccasion">#voitureoccasion</div>
+        <div class="htag on" data-t="#toulouse">#toulouse</div>
+        <div class="htag on" data-t="#mecapulsegarage">#mecapulsegarage</div>
+        <div class="htag" data-t="#garage">#garage</div>
+        <div class="htag" data-t="#ventevoiture">#ventevoiture</div>
+        <div class="htag" data-t="#bonplan">#bonplan</div>
+        <div class="htag" data-t="#automoto">#automoto</div>
+        <div class="htag" data-t="#carforsale">#carforsale</div>
+        <div class="htag" data-t="#occasionàsaisir">#occasionàsaisir</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRÉVISUALISATION -->
+  <div class="sec">
+    <div class="sec-head"><span>👁</span><span class="sec-title">Aperçu du post</span></div>
+    <div class="sec-body">
+      <div class="prev-box">
+        <div class="prev-hd">
+          <div class="prev-av">MPG</div>
+          <div><div class="prev-page">MecaPulse Garage</div><div class="prev-sub">À l'instant · 🌍</div></div>
+        </div>
+        <div class="prev-img" id="prev-img"><span>📷 Photo principale</span></div>
+        <div class="prev-txt" id="prev-txt">Remplissez le formulaire pour voir l'aperçu...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PUBLICATION -->
+  <div class="sec">
+    <div class="sec-head"><span>🚀</span><span class="sec-title">Publier l'annonce</span></div>
+    <div class="sec-body">
+      <div class="reseau-grid">
+        <div class="rcard on-fb" id="rcard-fb" onclick="toggleR('fb')">
+          <div class="rcard-ico">🔵</div>
+          <div class="rcard-info">
+            <div class="rcard-nom">Facebook</div>
+            <div class="rcard-sub">Page MecaPulse + Marketplace</div>
+          </div>
+          <div class="rcard-chk" id="chk-fb">✓</div>
+        </div>
+        <div class="rcard on-ig" id="rcard-ig" onclick="toggleR('ig')">
+          <div class="rcard-ico">📸</div>
+          <div class="rcard-info">
+            <div class="rcard-nom">Instagram</div>
+            <div class="rcard-sub">Feed + Stories automatiques</div>
+          </div>
+          <div class="rcard-chk" id="chk-ig">✓</div>
+        </div>
+      </div>
+
+      <div class="status-bar" id="sbar" style="display:none;">
+        <div class="sitem pending" id="s-fb">🔵 Facebook — En attente</div>
+        <div class="sitem pending" id="s-ig">📸 Instagram — En attente</div>
+      </div>
+
+      <div class="btns-pub">
+        <button class="btn-both" onclick="publier('les deux')">🚀 PUBLIER FACEBOOK + INSTAGRAM</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="btn-fb" onclick="publier('facebook')">🔵 Facebook seulement</button>
+        <button class="btn-ig" onclick="publier('instagram')">📸 Instagram seulement</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<div id="toast"></div>
+
+<script>
+const WEBHOOK='https://hook.eu2.make.com/24tp88h8zdbnolcgbxmftn1dtyt8siir';
+let photos=[],selFb=true,selIg=true;
+
+// Photos
+function handleFiles(files){
+  Array.from(files).forEach(f=>{
+    if(!f.type.startsWith('image/'))return;
+    if(photos.length>=10){toast('Max 10 photos','err');return;}
+    const r=new FileReader();
+    r.onload=e=>{photos.push({file:f,url:e.target.result});renderPhotos();updatePreview();};
+    r.readAsDataURL(f);
+  });
+}
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('dz').classList.remove('drag');
+  handleFiles(e.dataTransfer.files);
+}
+function renderPhotos(){
+  const g=document.getElementById('photos-grid');g.innerHTML='';
+  photos.forEach((p,i)=>{
+    const d=document.createElement('div');d.className='photo-thumb';
+    d.innerHTML=`<img src="${p.url}"><button class="del-ph" onclick="rmPh(${i})">✕</button>${i===0?'<div class="badge-principale">Principale</div>':''}`;
+    g.appendChild(d);
+  });
+  document.getElementById('ph-count').textContent=photos.length?`${photos.length} photo${photos.length>1?'s':''}` :'';
+}
+function rmPh(i){photos.splice(i,1);renderPhotos();updatePreview();}
+
+// Hashtags
+document.querySelectorAll('.htag').forEach(h=>{
+  h.addEventListener('click',()=>{h.classList.toggle('on');updatePreview();});
+});
+function getTags(){return Array.from(document.querySelectorAll('.htag.on')).map(h=>h.dataset.t).join(' ');}
+
+// Réseaux
+function toggleR(r){
+  if(r==='fb')selFb=!selFb; else selIg=!selIg;
+  document.getElementById('rcard-fb').className='rcard'+(selFb?' on-fb':'');
+  document.getElementById('chk-fb').textContent=selFb?'✓':'';
+  document.getElementById('rcard-ig').className='rcard'+(selIg?' on-ig':'');
+  document.getElementById('chk-ig').textContent=selIg?'✓':'';
+}
+
+function gv(id){return(document.getElementById(id)||{}).value||'';}
+
+// Génération description
+function genDesc(){
+  const m=gv('marque'),mo=gv('modele'),a=gv('annee'),km=gv('km');
+  const c=gv('carburant'),b=gv('boite'),col=gv('couleur'),opt=gv('options');
+  const etat=gv('etat'),ct=gv('ct'),nego=gv('nego'),prix=gv('prix');
+  if(!m&&!mo){toast('⚠ Remplissez la marque et le modèle','err');return;}
+  let d=`🚗 ${[m,mo,a].filter(Boolean).join(' ')} à vendre !\n\n`;
+  if(km)d+=`📍 Kilométrage : ${km}\n`;
+  if(c)d+=`⛽ Carburant : ${c}\n`;
+  if(b)d+=`⚙️ Boîte : ${b}\n`;
+  if(col)d+=`🎨 Couleur : ${col}\n`;
+  if(etat)d+=`✅ ${etat}\n`;
+  if(ct)d+=`🔧 CT : ${ct}\n`;
+  if(opt)d+=`\n🎁 Équipements : ${opt}\n`;
+  if(prix){d+=`\n💶 Prix : ${Number(prix).toLocaleString('fr-FR')} €`;
+    if(nego==='Oui')d+=' (négociable)';
+    else if(nego&&nego!=='Non')d+=` — ${nego}`;}
+  d+=`\n\n📞 ${gv('contact')||'05 32 00 22 13'}`;
+  d+=`\n📍 MecaPulse Garage — 217 Chem. de Boudou, 31140 Launaguet`;
+  document.getElementById('desc').value=d;
+  updatePreview();
+  toast('✅ Description générée !','ok');
+}
+
+// Preview
+function updatePreview(){
+  const m=gv('marque'),mo=gv('modele'),a=gv('annee'),desc=gv('desc'),tags=getTags();
+  const pi=document.getElementById('prev-img');
+  pi.innerHTML=photos.length?`<img src="${photos[0].url}">`:'<span>📷 Photo principale</span>';
+  let txt=desc||`${[m,mo,a].filter(Boolean).join(' ')||'Véhicule à vendre'}`;
+  if(tags)txt+='\n\n'+tags;
+  document.getElementById('prev-txt').textContent=txt;
+}
+
+// Publication
+async function publier(cible){
+  const desc=gv('desc'),m=gv('marque'),mo=gv('modele');
+  if(!desc){toast('⚠ Ajoutez une description','err');return;}
+  if(!m){toast('⚠ Remplissez la marque','err');return;}
+  const pubFb=cible==='les deux'?selFb:cible==='facebook';
+  const pubIg=cible==='les deux'?selIg:cible==='instagram';
+  if(!pubFb&&!pubIg){toast('⚠ Sélectionnez au moins un réseau','err');return;}
+
+  document.getElementById('sbar').style.display='flex';
+  if(pubFb)setS('fb','sending','🔵 Facebook — Envoi en cours...');
+  if(pubIg)setS('ig','sending','📸 Instagram — Envoi en cours...');
+
+  const tags=getTags();
+  const payload={
+    type:'annonce_vente',garage:'MecaPulse Garage',
+    marque:m,modele:mo,annee:gv('annee'),km:gv('km'),
+    carburant:gv('carburant'),boite:gv('boite'),couleur:gv('couleur'),
+    prix:gv('prix'),negociable:gv('nego'),contact:gv('contact')||'05 32 00 22 13',
+    etat:gv('etat'),ct:gv('ct'),options:gv('options'),
+    description:desc,hashtags:tags,
+    publier_facebook:pubFb,publier_instagram:pubIg,
+    photo_principale:photos.length>0?photos[0].url:null,
+    nb_photos:photos.length,
+    texte_facebook:desc,
+    texte_instagram:desc+(tags?'\n\n'+tags:''),
+    titre:`${m} ${mo} ${gv('annee')} — ${gv('prix')?Number(gv('prix')).toLocaleString('fr-FR')+' €':''}`.trim()
+  };
+
+  try{
+    const r=await fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(r.ok||r.status===200){
+      if(pubFb)setS('fb','ok','✅ Facebook — Envoyé à Make !');
+      if(pubIg)setS('ig','ok','✅ Instagram — Envoyé à Make !');
+      toast('✅ Annonce envoyée à Make !','ok');
+    }else throw new Error('HTTP '+r.status);
+  }catch(e){
+    if(pubFb)setS('fb','err','❌ Facebook — Erreur');
+    if(pubIg)setS('ig','err','❌ Instagram — Erreur');
+    toast('❌ Erreur : '+e.message,'err');
+  }
+}
+
+function setS(r,t,msg){const el=document.getElementById('s-'+r);if(el){el.className='sitem '+t;el.textContent=msg;}}
+
+function toast(msg,type=''){
+  const t=document.getElementById('toast');t.textContent=msg;t.className=type;
+  t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',4000);
+}
+updatePreview();
+</script>
+</body>
+</html>
