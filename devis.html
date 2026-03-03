@@ -672,7 +672,61 @@ async function savePlanning(){
     duree:gv('p-duree'),technicien:gv('p-tech'),notes:gv('p-notes'),
     garage:GARAGE.nom,type:'rdv_reparation'
   };
-  // Envoi webhook Make (même webhook, type différent)
   if(GARAGE.webhook){
     try{
-      await fetch(GARAGE.webhook,{method:'POST',headers:{'Content-Type':'applica
+      await fetch(GARAGE.webhook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(rdv)});
+      toast('✅ RDV enregistré !');
+    }catch(e){ toast('❌ Erreur envoi','err'); }
+  }
+  closePlanning();
+}
+
+// ══ INITIALISATION AU CHARGEMENT ══
+(function init(){
+  // Récupérer données depuis l'OR (localStorage)
+  let or = null;
+  try{
+    const s = localStorage.getItem('or_to_devis');
+    if(s){ or = JSON.parse(s); localStorage.removeItem('or_to_devis'); }
+  }catch(e){}
+
+  initDevis(or);
+
+  // Initialiser les signatures
+  ['sig-client','sig-garage'].forEach(id => initSig(id));
+})();
+
+function initSig(id){
+  const c = document.getElementById(id);
+  if(!c) return;
+  const dpr = window.devicePixelRatio||1;
+  function resize(){
+    const w=c.offsetWidth, h=c.offsetHeight||110;
+    c.width=w*dpr; c.height=h*dpr;
+    const ctx=c.getContext('2d'); ctx.scale(dpr,dpr);
+    ctx.strokeStyle='#111'; ctx.lineWidth=2; ctx.lineCap='round';
+  }
+  resize();
+  const ctx=c.getContext('2d');
+  let drawing=false;
+  function gp(e){ const r=c.getBoundingClientRect(), s=e.touches?e.touches[0]:e; return[s.clientX-r.left,s.clientY-r.top]; }
+  c.addEventListener('mousedown',e=>{drawing=true;ctx.beginPath();ctx.moveTo(...gp(e));});
+  c.addEventListener('mousemove',e=>{if(!drawing)return;ctx.lineTo(...gp(e));ctx.stroke();});
+  c.addEventListener('mouseup',()=>drawing=false);
+  c.addEventListener('mouseleave',()=>drawing=false);
+  c.addEventListener('touchstart',e=>{e.preventDefault();drawing=true;ctx.beginPath();ctx.moveTo(...gp(e));},{passive:false});
+  c.addEventListener('touchmove',e=>{e.preventDefault();if(!drawing)return;ctx.lineTo(...gp(e));ctx.stroke();},{passive:false});
+  c.addEventListener('touchend',()=>drawing=false);
+  window.addEventListener('resize',resize);
+}
+
+function clearSig(id){ const c=document.getElementById(id); if(c){ c.getContext('2d').clearRect(0,0,c.width,c.height); } }
+
+function toast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show'+(type?' '+type:'');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.className='toast',3500);
+}
+</script>
+</body>
+</html>
