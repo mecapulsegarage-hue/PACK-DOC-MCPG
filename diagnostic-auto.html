@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoDiag Pro — Agent IA Garage</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --surface: #111418;
+    --surface2: #181c22;
+    --border: #1e2530;
+    --accent: #f59e0b;
+    --accent2: #ef4444;
+    --green: #22c55e;
+    --blue: #3b82f6;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --font-display: 'Rajdhani', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+    --font-body: 'IBM Plex Sans', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  /* SCAN LINES OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 68px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 0 40px rgba(245,158,11,0.12);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .logo-icon {
+    width: 42px;
+    height: 42px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+  }
+
+  .logo-text h1 {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .logo-text span {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  .status-dot {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--green);
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* MAIN LAYOUT */
+  main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 280px 1fr 260px;
+    height: calc(100vh - 68px);
+    overflow: hidden;
+  }
+
+  /* LEFT PANEL */
+  .left-panel {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .panel-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .vehicle-form {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-group label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .form-group input,
+  .form-group select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(245,158,11,0.1);
+  }
+
+  .form-group select option {
+    background: var(--surface2);
+  }
+
+  .symptoms-grid {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .symptoms-grid h3 {
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+
+  .symptom-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .chip {
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+  .chip.active { border-color: var(--accent); background: rgba(245,158,11,0.1); color: var(--accent); }
+
+  .history-section {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    flex: 1;
+  }
+
+  .history-section h3 {
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .history-item {
+    padding: 10px;
+    border-radius: 6px;
+    background: var(--surface2);
+    margin-bottom: 8px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+  }
+
+  .history-item:hover { border-color: var(--border); }
+
+  .history-item .hi-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .history-item .hi-sub {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  /* CENTER — CHAT */
+  .chat-area {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  .chat-toolbar {
+    padding: 12px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .chat-title {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .chat-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-sm {
+    padding: 6px 14px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    scroll-behavior: smooth;
+  }
+
+  .messages::-webkit-scrollbar { width: 4px; }
+  .messages::-webkit-scrollbar-track { background: transparent; }
+  .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* WELCOME */
+  .welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    text-align: center;
+    gap: 16px;
+    padding: 40px;
+    animation: fadeIn 0.6s ease;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  .welcome-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05));
+    border: 1px solid rgba(245,158,11,0.3);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+  }
+
+  .welcome h2 {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .welcome p {
+    color: var(--muted);
+    font-size: 13px;
+    max-width: 420px;
+    line-height: 1.6;
+  }
+
+  .quick-starts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+    max-width: 480px;
+    margin-top: 8px;
+  }
+
+  .qs-btn {
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+    line-height: 1.5;
+  }
+
+  .qs-btn:hover { border-color: var(--accent); background: rgba(245,158,11,0.05); }
+
+  .qs-btn .qs-icon { font-size: 18px; display: block; margin-bottom: 4px; }
+
+  /* MESSAGE BUBBLES */
+  .message {
+    display: flex;
+    gap: 12px;
+    animation: msgIn 0.3s ease;
+  }
+
+  @keyframes msgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  .message.user { flex-direction: row-reverse; }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .avatar.ai { background: linear-gradient(135deg, #f59e0b, #d97706); }
+  .avatar.user { background: var(--surface2); border: 1px solid var(--border); }
+
+  .bubble {
+    max-width: 75%;
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .message.ai .bubble {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top-left-radius: 4px;
+  }
+
+  .message.user .bubble {
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.25);
+    border-top-right-radius: 4px;
+    color: var(--text);
+  }
+
+  .bubble-meta {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* DIAGNOSTIC CARD */
+  .diag-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-top: 10px;
+    overflow: hidden;
+  }
+
+  .diag-header {
+    padding: 12px 16px;
+    background: rgba(245,158,11,0.08);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .diag-body { padding: 16px; }
+
+  .severity-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .severity-high { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); color: #ef4444; }
+  .severity-medium { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.4); color: #f59e0b; }
+  .severity-low { background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.4); color: #22c55e; }
+
+  .diag-section { margin-bottom: 14px; }
+  .diag-section:last-child { margin-bottom: 0; }
+
+  .diag-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .diag-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .diag-list li {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text);
+    padding: 6px 10px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 4px;
+    border-left: 2px solid var(--accent);
+  }
+
+  .price-estimate {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .price-tag {
+    padding: 6px 14px;
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.3);
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--blue);
+  }
+
+  /* TYPING */
+  .typing-indicator {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .typing-dots {
+    display: flex;
+    gap: 4px;
+    padding: 14px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    border-top-left-radius: 4px;
+  }
+
+  .typing-dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: typing 1.2s infinite;
+  }
+
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-6px); opacity: 1; }
+  }
+
+  /* INPUT */
+  .input-area {
+    padding: 16px 24px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+  }
+
+  .input-wrapper {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 10px 14px;
+    transition: border-color 0.2s;
+  }
+
+  .input-wrapper:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(245,158,11,0.08);
+  }
+
+  #userInput {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 13px;
+    resize: none;
+    max-height: 120px;
+    line-height: 1.5;
+  }
+
+  #userInput::placeholder { color: var(--muted); }
+
+  .send-btn {
+    width: 40px;
+    height: 40px;
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+    color: #000;
+  }
+
+  .send-btn:hover { background: #d97706; transform: scale(1.05); }
+  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* RIGHT PANEL */
+  .right-panel {
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .stats-grid {
+    padding: 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stat-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+  }
+
+  .stat-card .stat-val {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .stat-card .stat-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .obd-section {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .obd-section h3 {
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+
+  .obd-code {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--surface2);
+    border-radius: 6px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+  }
+
+  .obd-code:hover { border-color: var(--accent); }
+
+  .obd-code .code { font-family: var(--font-mono); font-size: 12px; color: var(--accent); }
+  .obd-code .desc { font-family: var(--font-mono); font-size: 10px; color: var(--muted); }
+
+  .tips-section {
+    padding: 16px;
+  }
+
+  .tips-section h3 {
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .tip {
+    padding: 10px 12px;
+    background: var(--surface2);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    border-left: 2px solid var(--blue);
+  }
+
+  .tip p {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* SCROLLBAR */
+  .left-panel::-webkit-scrollbar,
+  .right-panel::-webkit-scrollbar { width: 4px; }
+  .left-panel::-webkit-scrollbar-thumb,
+  .right-panel::-webkit-scrollbar-thumb { background: var(--border); }
+
+  /* RESPONSIVE */
+  @media (max-width: 1100px) {
+    main { grid-template-columns: 240px 1fr; }
+    .right-panel { display: none; }
+  }
+  @media (max-width: 700px) {
+    main { grid-template-columns: 1fr; }
+    .left-panel { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🔧</div>
+    <div class="logo-text">
+      <h1>AutoDiag Pro</h1>
+      <span>Agent IA · Diagnostic Automobile</span>
+    </div>
+  </div>
+  <div class="status-bar">
+    <div class="status-dot"><div class="dot"></div> IA Connectée</div>
+    <span style="color:var(--muted);font-family:var(--font-mono);font-size:11px;">v2.4.1</span>
+  </div>
+</header>
+
+<main>
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="panel-header">🚗 Véhicule</div>
+    <div class="vehicle-form">
+      <div class="form-group">
+        <label>Marque</label>
+        <input type="text" id="brand" placeholder="Ex: Renault, Peugeot…">
+      </div>
+      <div class="form-group">
+        <label>Modèle</label>
+        <input type="text" id="model" placeholder="Ex: Clio, 308…">
+      </div>
+      <div class="form-group">
+        <label>Année</label>
+        <input type="number" id="year" placeholder="Ex: 2018" min="1980" max="2025">
+      </div>
+      <div class="form-group">
+        <label>Motorisation</label>
+        <select id="engine">
+          <option value="">Sélectionner…</option>
+          <option>Essence 1.0T</option>
+          <option>Essence 1.2T</option>
+          <option>Essence 1.4</option>
+          <option>Essence 1.6T</option>
+          <option>Essence 2.0T</option>
+          <option>Diesel 1.5 dCi</option>
+          <option>Diesel 1.6 HDi</option>
+          <option>Diesel 2.0 TDI</option>
+          <option>Hybride</option>
+          <option>Électrique</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Kilométrage</label>
+        <input type="text" id="km" placeholder="Ex: 85 000 km">
+      </div>
+    </div>
+
+    <div class="symptoms-grid">
+      <h3>⚡ Symptômes rapides</h3>
+      <div class="symptom-chips" id="symptomChips">
+        <div class="chip" data-val="voyant moteur allumé">🔴 Voyant moteur</div>
+        <div class="chip" data-val="bruit moteur anormal">🔊 Bruit moteur</div>
+        <div class="chip" data-val="fumée noire échappement">💨 Fumée noire</div>
+        <div class="chip" data-val="fumée blanche échappement">💨 Fumée blanche</div>
+        <div class="chip" data-val="perte de puissance">⬇️ Perte puissance</div>
+        <div class="chip" data-val="surchauffe moteur">🌡️ Surchauffe</div>
+        <div class="chip" data-val="freins qui grincent">🛑 Freins grincent</div>
+        <div class="chip" data-val="vibrations volant">〰️ Vibrations</div>
+        <div class="chip" data-val="démarrage difficile">🔑 Démarrage dur</div>
+        <div class="chip" data-val="consommation excessive">⛽ Surconsomm.</div>
+        <div class="chip" data-val="batterie faible">🪫 Batterie faible</div>
+        <div class="chip" data-val="fuite huile">🛢️ Fuite huile</div>
+      </div>
+    </div>
+
+    <div class="history-section">
+      <h3>📋 Historique récent</h3>
+      <div id="historyList">
+        <div class="history-item" onclick="loadHistory('Renault Clio 2019 — Voyant moteur')">
+          <div class="hi-title">Renault Clio 2019</div>
+          <div class="hi-sub">Voyant moteur · il y a 2h</div>
+        </div>
+        <div class="history-item" onclick="loadHistory('Peugeot 308 2016 — Freins grincent')">
+          <div class="hi-title">Peugeot 308 2016</div>
+          <div class="hi-sub">Freins grincent · hier</div>
+        </div>
+        <div class="history-item" onclick="loadHistory('Volkswagen Golf 2020 — Perte de puissance')">
+          <div class="hi-title">Volkswagen Golf 2020</div>
+          <div class="hi-sub">Perte puissance · 3j</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT AREA -->
+  <div class="chat-area">
+    <div class="chat-toolbar">
+      <div class="chat-title">Console de Diagnostic</div>
+      <div class="chat-actions">
+        <button class="btn-sm" onclick="generateReport()">📄 Rapport</button>
+        <button class="btn-sm" onclick="clearChat()">🗑️ Effacer</button>
+      </div>
+    </div>
+
+    <div class="messages" id="messages">
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">🔍</div>
+        <h2>Diagnostic IA</h2>
+        <p>Décrivez la panne ou les symptômes de votre véhicule. L'IA analysera et proposera un diagnostic précis avec les réparations recommandées.</p>
+        <div class="quick-starts">
+          <button class="qs-btn" onclick="quickStart('Le voyant moteur est allumé sur ma voiture, que dois-je faire ?')">
+            <span class="qs-icon">🔴</span>Voyant moteur allumé
+          </button>
+          <button class="qs-btn" onclick="quickStart('Mon moteur fait un bruit de claquement au démarrage')">
+            <span class="qs-icon">🔊</span>Bruit de claquement
+          </button>
+          <button class="qs-btn" onclick="quickStart('Ma voiture fume beaucoup à l\'échappement, fumée noire')">
+            <span class="qs-icon">💨</span>Fumée à l'échappement
+          </button>
+          <button class="qs-btn" onclick="quickStart('Les freins grincent fortement quand je freine')">
+            <span class="qs-icon">🛑</span>Freins qui grincent
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-area">
+      <div class="input-wrapper">
+        <textarea
+          id="userInput"
+          placeholder="Décrivez la panne, les symptômes, le code OBD…"
+          rows="1"
+          onkeydown="handleKey(event)"
+          oninput="autoResize(this)"
+        ></textarea>
+      </div>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="panel-header">📊 Tableau de bord</div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-val" id="statDiags">0</div>
+        <div class="stat-label">Diagnostics</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="statSession">00:00</div>
+        <div class="stat-label">Session</div>
+      </div>
+    </div>
+
+    <div class="obd-section">
+      <h3>🔌 Codes OBD courants</h3>
+      <div class="obd-code" onclick="askOBD('P0300')">
+        <span class="code">P0300</span>
+        <span class="desc">Ratés allumage</span>
+      </div>
+      <div class="obd-code" onclick="askOBD('P0171')">
+        <span class="code">P0171</span>
+        <span class="desc">Mélange trop pauvre</span>
+      </div>
+      <div class="obd-code" onclick="askOBD('P0420')">
+        <span class="code">P0420</span>
+        <span class="desc">Catalyseur défaillant</span>
+      </div>
+      <div class="obd-code" onclick="askOBD('P0401')">
+        <span class="code">P0401</span>
+        <span class="desc">EGR insuffisant</span>
+      </div>
+      <div class="obd-code" onclick="askOBD('B1000')">
+        <span class="code">B1000</span>
+        <span class="desc">Système airbag</span>
+      </div>
+      <div class="obd-code" onclick="askOBD('C0035')">
+        <span class="code">C0035</span>
+        <span class="desc">Capteur ABS roue AV</span>
+      </div>
+    </div>
+
+    <div class="tips-section">
+      <h3>💡 Conseils Praticiens</h3>
+      <div class="tip">
+        <p>🔋 Toujours vérifier la tension batterie avant un diagnostic électronique (> 12.4V).</p>
+      </div>
+      <div class="tip">
+        <p>🌡️ Un moteur qui surchauffe doit être stoppé immédiatement pour éviter une casse moteur.</p>
+      </div>
+      <div class="tip">
+        <p>🛢️ Une pression d'huile insuffisante = risque de casse moteur grave. Vérifier le niveau avant tout.</p>
+      </div>
+      <div class="tip">
+        <p>⚡ Les codes OBD P0 sont des codes standardisés, les P1/P2 sont constructeur-spécifiques.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const API_URL = "https://api.anthropic.com/v1/messages";
+let conversationHistory = [];
+let diagCount = 0;
+let sessionStart = Date.now();
+let selectedSymptoms = [];
+
+// Session timer
+setInterval(() => {
+  const elapsed = Math.floor((Date.now() - sessionStart) / 1000);
+  const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+  const s = String(elapsed % 60).padStart(2, '0');
+  document.getElementById('statSession').textContent = `${m}:${s}`;
+}, 1000);
+
+// Symptom chips
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    chip.classList.toggle('active');
+    const val = chip.dataset.val;
+    if (chip.classList.contains('active')) {
+      selectedSymptoms.push(val);
+    } else {
+      selectedSymptoms = selectedSymptoms.filter(s => s !== val);
+    }
+  });
+});
+
+function getVehicleContext() {
+  const brand = document.getElementById('brand').value;
+  const model = document.getElementById('model').value;
+  const year = document.getElementById('year').value;
+  const engine = document.getElementById('engine').value;
+  const km = document.getElementById('km').value;
+  
+  let ctx = '';
+  if (brand || model || year) {
+    ctx = `\n[Véhicule: ${[brand, model, year, engine, km].filter(Boolean).join(' | ')}]`;
+  }
+  if (selectedSymptoms.length > 0) {
+    ctx += `\n[Symptômes sélectionnés: ${selectedSymptoms.join(', ')}]`;
+  }
+  return ctx;
+}
+
+function getSystemPrompt() {
+  return `Tu es AutoDiag Pro, un agent IA expert en diagnostic automobile pour un garage professionnel. Tu as une expertise approfondie en mécanique automobile, électronique embarquée, systèmes de freinage, motorisation (essence, diesel, hybride, électrique) et codes de défaut OBD.
+
+Ton rôle :
+- Analyser les symptômes décrits par le mécanicien ou le client
+- Proposer un diagnostic précis avec les causes probables (classées par probabilité)
+- Recommander les vérifications et réparations à effectuer
+- Estimer les coûts de réparation approximatifs (main d'œuvre + pièces)
+- Indiquer le niveau d'urgence (CRITIQUE / MODÉRÉ / FAIBLE)
+- Décoder les codes OBD/DTC quand fournis
+- Poser des questions de clarification si nécessaire
+
+Format de réponse :
+Pour les diagnostics, utilise toujours ce format structuré dans ta réponse en utilisant des balises HTML simples:
+<diag-card>
+<title>TITRE DU DIAGNOSTIC</title>
+<severity>HIGH|MEDIUM|LOW</severity>
+<severity-text>CRITIQUE|MODÉRÉ|FAIBLE</severity-text>
+<causes>Cause 1 probable (70%)|Cause 2 possible (20%)|Cause 3 moins probable (10%)</causes>
+<verifications>Vérification 1|Vérification 2|Vérification 3</verifications>
+<reparations>Réparation 1|Réparation 2</reparations>
+<prix>Pièces: 50-150€|Main d'œuvre: 1-2h (80-160€)|Total estimé: 130-310€</prix>
+<note>Note ou conseil important pour le mécanicien</note>
+</diag-card>
+
+Suivi ce format pour tout diagnostic. Pour les questions générales, réponds normalement en français professionnel.
+Tu peux poser des questions de suivi pour affiner le diagnostic.
+Sois précis, professionnel et concis.`;
+}
+
+async function sendMessage(customMessage) {
+  const input = document.getElementById('userInput');
+  const userText = customMessage || input.value.trim();
+  if (!userText) return;
+
+  const vehicleCtx = getVehicleContext();
+  const fullMessage = userText + vehicleCtx;
+
+  // Hide welcome
+  const welcome = document.getElementById('welcome');
+  if (welcome) welcome.remove();
+
+  // Add user message
+  addMessage('user', userText);
+  if (!customMessage) { input.value = ''; input.style.height = 'auto'; }
+
+  // Disable send
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+
+  // Add to history
+  conversationHistory.push({ role: 'user', content: fullMessage });
+
+  // Show typing
+  const typingId = showTyping();
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: getSystemPrompt(),
+        messages: conversationHistory
+      })
+    });
+
+    const data = await response.json();
+    removeTyping(typingId);
+
+    if (data.content && data.content[0]) {
+      const aiText = data.content[0].text;
+      conversationHistory.push({ role: 'assistant', content: aiText });
+      addMessage('ai', aiText);
+      diagCount++;
+      document.getElementById('statDiags').textContent = diagCount;
+    }
+  } catch (err) {
+    removeTyping(typingId);
+    addMessage('ai', '⚠️ Erreur de connexion à l\'IA. Vérifiez votre connexion réseau.');
+    console.error(err);
+  }
+
+  btn.disabled = false;
+}
+
+function addMessage(role, text) {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = `message ${role}`;
+
+  const avatar = `<div class="avatar ${role}">${role === 'ai' ? '🔧' : '👤'}</div>`;
+  const time = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+  let bubbleContent = '';
+
+  if (role === 'ai' && text.includes('<diag-card>')) {
+    bubbleContent = parseAndRenderDiagCard(text);
+  } else {
+    bubbleContent = `<div class="bubble-meta">${role === 'ai' ? 'AutoDiag IA' : 'Mécanicien'} · ${time}</div>
+      <div>${formatText(text)}</div>`;
+  }
+
+  div.innerHTML = `
+    ${role === 'ai' ? avatar : ''}
+    <div class="bubble">${bubbleContent}</div>
+    ${role === 'user' ? avatar : ''}
+  `;
+
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function parseAndRenderDiagCard(text) {
+  const get = (tag) => {
+    const m = text.match(new RegExp(`<${tag}>([\s\S]*?)<\/${tag}>`));
+    return m ? m[1].trim() : '';
+  };
+
+  const title = get('title');
+  const severity = get('severity').toLowerCase();
+  const severityText = get('severity-text');
+  const causes = get('causes').split('|');
+  const verifications = get('verifications').split('|');
+  const reparations = get('reparations').split('|');
+  const prix = get('prix').split('|');
+  const note = get('note');
+
+  // Extract text before/after card
+  const before = text.split('<diag-card>')[0].trim();
+  const after = text.split('</diag-card>')[1]?.trim() || '';
+
+  const time = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+  return `
+    <div class="bubble-meta">AutoDiag IA · ${time}</div>
+    ${before ? `<p style="margin-bottom:10px">${formatText(before)}</p>` : ''}
+    <div class="diag-card">
+      <div class="diag-header">
+        🔍 ${title}
+        <span class="severity-badge severity-${severity}" style="margin-left:auto">${severityText}</span>
+      </div>
+      <div class="diag-body">
+        <div class="diag-section">
+          <div class="diag-label">⚡ Causes probables</div>
+          <ul class="diag-list">${causes.filter(Boolean).map(c => `<li>${c}</li>`).join('')}</ul>
+        </div>
+        <div class="diag-section">
+          <div class="diag-label">🔎 Vérifications recommandées</div>
+          <ul class="diag-list">${verifications.filter(Boolean).map(v => `<li>${v}</li>`).join('')}</ul>
+        </div>
+        <div class="diag-section">
+          <div class="diag-label">🔧 Réparations</div>
+          <ul class="diag-list">${reparations.filter(Boolean).map(r => `<li>${r}</li>`).join('')}</ul>
+        </div>
+        <div class="diag-section">
+          <div class="diag-label">💰 Estimation des coûts</div>
+          <div class="price-estimate">${prix.filter(Boolean).map(p => `<span class="price-tag">${p}</span>`).join('')}</div>
+        </div>
+        ${note ? `<div class="diag-section">
+          <div class="diag-label">💡 Note importante</div>
+          <div style="padding:10px;background:rgba(245,158,11,0.05);border:1px solid rgba(245,158,11,0.2);border-radius:6px;font-size:12px;color:var(--text)">${note}</div>
+        </div>` : ''}
+      </div>
+    </div>
+    ${after ? `<p style="margin-top:10px">${formatText(after)}</p>` : ''}
+  `;
+}
+
+function formatText(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br>');
+}
+
+function showTyping() {
+  const msgs = document.getElementById('messages');
+  const id = 'typing_' + Date.now();
+  const div = document.createElement('div');
+  div.className = 'typing-indicator';
+  div.id = id;
+  div.innerHTML = `
+    <div class="avatar ai">🔧</div>
+    <div class="typing-dots"><span></span><span></span><span></span></div>
+  `;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return id;
+}
+
+function removeTyping(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function quickStart(msg) {
+  sendMessage(msg);
+}
+
+function askOBD(code) {
+  sendMessage(`Explique-moi le code OBD ${code} et son diagnostic.`);
+}
+
+function loadHistory(label) {
+  sendMessage(`Récapitulatif du diagnostic: ${label}`);
+}
+
+function clearChat() {
+  conversationHistory = [];
+  diagCount = 0;
+  document.getElementById('statDiags').textContent = '0';
+  const msgs = document.getElementById('messages');
+  msgs.innerHTML = `
+    <div class="welcome" id="welcome">
+      <div class="welcome-icon">🔍</div>
+      <h2>Diagnostic IA</h2>
+      <p>Décrivez la panne ou les symptômes de votre véhicule. L'IA analysera et proposera un diagnostic précis avec les réparations recommandées.</p>
+      <div class="quick-starts">
+        <button class="qs-btn" onclick="quickStart('Le voyant moteur est allumé sur ma voiture, que dois-je faire ?')">
+          <span class="qs-icon">🔴</span>Voyant moteur allumé
+        </button>
+        <button class="qs-btn" onclick="quickStart('Mon moteur fait un bruit de claquement au démarrage')">
+          <span class="qs-icon">🔊</span>Bruit de claquement
+        </button>
+        <button class="qs-btn" onclick="quickStart('Ma voiture fume beaucoup à l\'échappement, fumée noire')">
+          <span class="qs-icon">💨</span>Fumée à l'échappement
+        </button>
+        <button class="qs-btn" onclick="quickStart('Les freins grincent fortement quand je freine')">
+          <span class="qs-icon">🛑</span>Freins qui grincent
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+async function generateReport() {
+  if (conversationHistory.length === 0) {
+    alert('Aucun diagnostic à exporter pour le moment.');
+    return;
+  }
+  sendMessage('Génère un résumé de rapport de diagnostic complet pour ce véhicule basé sur notre conversation, avec toutes les informations importantes pour le client et le mécanicien.');
+}
+</script>
+</body>
+</html>
